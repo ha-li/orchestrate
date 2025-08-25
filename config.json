@@ -1,0 +1,13 @@
+{
+  "docker": {
+    "docker_name": "test-container-1",
+    "docker_image": "postgres:13"
+  },
+  "database": {
+    "user": "cube",
+    "psswd": "secret"
+  },
+  "server": {
+    "port": 32434
+  }
+}

@@ -28,11 +28,13 @@ const (
 type (
 	Task struct {
 		ID            uuid.UUID // uuid are 128 bits, in practice unique, but it is possible to generate to identical uuids
+		ContainerID   string
 		Name          string
 		State         State
 		Image         string
-		Memory        int
-		Disk          int
+		Cpu           float64
+		Memory        int64
+		Disk          int64
 		ExposedPorts  nat.PortSet
 		PortBindings  map[string]string
 		RestartPolicy string
@@ -75,6 +77,26 @@ type (
 		Result      string
 	}
 )
+
+func NewConfig(t *Task) *Config {
+	return &Config{
+		Name:          t.Name,
+		ExposedPorts:  t.ExposedPorts,
+		Image:         t.Image,
+		Cpu:           t.Cpu,
+		Memory:        t.Memory,
+		Disk:          t.Disk,
+		RestartPolicy: t.RestartPolicy,
+	}
+}
+
+func NewDocker(c *Config) *Docker {
+	dc, _ := client.NewClientWithOpts(client.FromEnv)
+	return &Docker{
+		Client: dc,
+		Config: *c,
+	}
+}
 
 // Context is a type/object that can pass values across boundaries such as API's and processes
 // context.Background() returns an empty context
