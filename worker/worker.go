@@ -13,7 +13,7 @@ import (
 
 type Worker struct {
 	Name      string
-	Db        map[uuid.UUID]*task.Task
+	Db        map[uuid.UUID]*task.Task // mapping of task uuid to the task
 	Queue     queue.Queue
 	TaskCount int
 }
@@ -28,20 +28,21 @@ func (w *Worker) AddTask(t task.Task) {
 
 func (w *Worker) RunTask() task.DockerResult {
 	fmt.Println("I will run task")
-	t := w.Queue.Dequeue()
+	t := w.Queue.Dequeue() // returns any
 	if t == nil {
 		log.Println("No task to run")
 		return task.DockerResult{Error: nil}
 	}
 
-	taskQueued := t.(task.Task)
+	taskQueued := t.(task.Task) // unwrap any to its true type
 
-	taskPersisted := w.Db[taskQueued.ID]
+	taskPersisted := w.Db[taskQueued.ID] // retrieve the task from the db
 	if taskPersisted == nil {
 		taskPersisted = &taskQueued
 		w.Db[taskQueued.ID] = &taskQueued
 	}
 
+	// check if the state transition is valid
 	var result task.DockerResult
 	if task.ValidStateTransition(taskPersisted.State, taskQueued.State) {
 		switch taskQueued.State {

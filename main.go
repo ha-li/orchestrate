@@ -92,6 +92,7 @@ func main() {
 		Db:    db,
 	}
 
+	// the first task
 	t := task.Task{
 		ID:    uuid.New(),
 		Name:  "test-container-1",
