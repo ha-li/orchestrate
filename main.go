@@ -2,9 +2,12 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
 	"orchestrate/app/config"
 	"orchestrate/task"
 	"orchestrate/worker"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/docker/docker/client"
@@ -80,7 +83,8 @@ func main() {
 		_ = stopContainer(dockerTask, createResult.ContainerId)
 
 	*/
-	appConfig := config.New()
+	// chapter 4 stuff
+	/* appConfig := config.New()
 	err := appConfig.LoadConfig("config.json")
 	if err != nil {
 		panic(err)
@@ -117,6 +121,47 @@ func main() {
 	result = w.RunTask()
 	if result.Error != nil {
 		panic(result.Error)
+	} */
+
+	// chapter 5
+	host := os.Getenv("localhost")
+	port, _ := strconv.Atoi("5555")
+
+	slog.Info("Starting cube worker")
+
+	w := worker.Worker{
+		Queue: *queue.New(),
+		Db:    make(map[uuid.UUID]*task.Task),
+	}
+
+	api := worker.Api{Address: host, Port: port, Worker: &w}
+
+	go runTasks(&w) // a goroutine is just a new thread
+	api.Start()
+}
+
+// In golang, a general guideline of when to use exported functions vs structs and methods is
+// if working with a stateless operation, use functions.
+// If the operation requires encapsulate state, or a clear lifecycle, then it is appropriate
+// to use a struct with methods. You can use fields to hold state/data, and enforce lifecycle.
+func runTasks(w *worker.Worker) {
+
+	// in infinite loop, with sleeps
+	for {
+		// if there is something in the queue, we have the worker run a task
+		if w.Queue.Len() != 0 {
+			result := w.RunTask()
+			if result.Error != nil {
+				slog.Error("Error running tasks", "error", result.Error)
+			}
+		} else {
+			// otherwise we print to console no task
+			slog.Info("No tasks to process currently")
+		}
+
+		// sleep until the next check
+		slog.Info("Sleeping for 10 seconds")
+		time.Sleep(10 * time.Second)
 	}
 }
 
