@@ -137,6 +137,8 @@ func main() {
 	api := worker.Api{Address: host, Port: port, Worker: &w}
 
 	go runTasks(&w) // a goroutine is just a new thread
+	// doesn't work on mac since it doesn't have /proc
+	//go w.CollectStats()
 	api.Start()
 }
 

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"log/slog"
 	"orchestrate/task"
 	"time"
 
@@ -16,6 +17,7 @@ type Worker struct {
 	Db        map[uuid.UUID]*task.Task // mapping of task uuid to the task
 	Queue     queue.Queue
 	TaskCount int
+	Stats     *Stats
 }
 
 func (w *Worker) GetTasks() []*task.Task {
@@ -27,7 +29,12 @@ func (w *Worker) GetTasks() []*task.Task {
 }
 
 func (w *Worker) CollectStats() {
-	fmt.Println("I will collect stats")
+	for {
+		slog.Info("Collecting stats")
+		w.Stats = GetStats()
+		w.Stats.TaskCount = w.TaskCount
+		time.Sleep(15 * time.Second)
+	}
 }
 
 func (w *Worker) AddTask(t task.Task) {

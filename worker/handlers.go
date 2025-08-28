@@ -64,6 +64,12 @@ func (a *Api) StopTaskHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func (a *Api) GetStatsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(a.Worker.Stats)
+}
+
 func (a *Api) initRouter() {
 	a.Router = chi.NewRouter()
 	a.Router.Route("/tasks", func(r chi.Router) {
@@ -72,6 +78,9 @@ func (a *Api) initRouter() {
 		r.Route("/{taskID}", func(r chi.Router) {
 			r.Delete("/", a.StopTaskHandler) // on /tasks/{taskID} DELETE
 		})
+	})
+	a.Router.Route("/stats", func(r chi.Router) {
+		r.Get("/", a.GetStatsHandler)
 	})
 }
 
